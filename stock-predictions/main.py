@@ -16,20 +16,19 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
     Returns:
     - A string representing the transactions for the day.
     """
-    return "2 \nUFL BUY 1\nUCB BUY 1"
+    return "1 \nRIT BUY 1"#"2 \nUFL BUY 1\nUCB BUY 1"
 
 def main():
     """Read data from a file, process it, and print the transactions."""
     # Read data from a file
     data = pd.read_csv("data_raw.txt", sep=" ", header=None, index_col=0).transpose()
 
-    # Show data
-    # data.plot()
-    # plt.show()
-    # # data.to_csv("output.csv")
+    # # Show data
+    data.plot()
+    plt.show()
 
     # Set variables
-    m = 100  # money left
+    m = 120  # money left
     k = 10  # number of stocks
     n = 5  # number of days for which stock prices are received
 
@@ -70,8 +69,13 @@ def main():
                 if stock_price*num_shares <= m:
 
                     m -= stock_price*num_shares
-
+                  
                     owned[name_idx] += num_shares
+
+
+    # Market value
+    market_val = np.sum(owned*row.to_numpy())
+    print(market_val)
 
 if __name__ == "__main__":
     main()
