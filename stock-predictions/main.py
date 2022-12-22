@@ -34,7 +34,7 @@ def print_transactions():
         data = pd.DataFrame()
 
 
-    
+    #TODO calculate rate of return, add to dataframe, use SVR
 
     data.to_csv(file_path, index=False)
 
