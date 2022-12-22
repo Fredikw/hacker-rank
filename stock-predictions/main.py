@@ -1,8 +1,13 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import csv
+import os
 
-def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.ndarray, prices: np.ndarray) -> str:
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+
+# def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.ndarray, prices: np.ndarray) -> str:
+def print_transactions():
     """Print the transactions for a given day.
 
     Parameters:
@@ -16,16 +21,33 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
     Returns:
     - A string representing the transactions for the day.
     """
+    
+    # Set the file path and name
+    file_path = "dataa.csv"
+
+    # Check if the file exists
+    if os.path.exists(file_path):
+        # Open the file and read the data into a dataframe
+        data = pd.read_csv(file_path)
+    else:
+        # Create an empty dataframe
+        data = pd.DataFrame()
+
+
+    
+
+    data.to_csv(file_path, index=False)
+
     return "1 \nRIT BUY 1"#"2 \nUFL BUY 1\nUCB BUY 1"
 
 def main():
     """Read data from a file, process it, and print the transactions."""
     # Read data from a file
-    data = pd.read_csv("data_raw.txt", sep=" ", header=None, index_col=0).transpose()
+    data = pd.read_csv("data_train_raw.txt", sep=" ", header=None, index_col=0).transpose()
 
-    # # Show data
-    data.plot()
-    plt.show()
+    # # # Show data
+    # data.plot()
+    # plt.show()
 
     # Set variables
     m = 120  # money left
@@ -78,4 +100,5 @@ def main():
     print(market_val)
 
 if __name__ == "__main__":
-    main()
+    # main()
+    print_transactions()
