@@ -6,8 +6,7 @@ import numpy as np
 import pandas as pd
 
 
-# def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.ndarray, prices: np.ndarray) -> str:
-def print_transactions():
+def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.ndarray, prices: np.ndarray) -> str:
     """Print the transactions for a given day.
 
     Parameters:
@@ -23,20 +22,30 @@ def print_transactions():
     """
     
     # Set the file path and name
-    file_path = "dataa.csv"
+    file_path = "data.csv"
 
     # Check if the file exists
     if os.path.exists(file_path):
         # Open the file and read the data into a dataframe
         data = pd.read_csv(file_path)
+
+        # Add stock prices for today
+        data.loc[len(data)] = [prices[i][-1] for i in range(len(names))]
+
+
     else:
         # Create an empty dataframe
         data = pd.DataFrame()
-
+    
+        # Add stock prices for the last five days
+        for i in range(k):
+            data[names[i]] = prices[i]
 
     #TODO calculate rate of return, add to dataframe, use SVR
 
     data.to_csv(file_path, index=False)
+
+    return ""
 
     return "1 \nRIT BUY 1"#"2 \nUFL BUY 1\nUCB BUY 1"
 
@@ -44,7 +53,6 @@ def main():
     """Read data from a file, process it, and print the transactions."""
     # Read data from a file
     data = pd.read_csv("data_train_raw.txt", sep=" ", header=None, index_col=0).transpose()
-
     # # # Show data
     # data.plot()
     # plt.show()
@@ -60,7 +68,7 @@ def main():
 
     # Iterate over the rows of the dataframe
     for i, row in data.iterrows():
-        if i < 4:
+        if i < 5:
             continue
 
         d = d_tot - i
@@ -82,9 +90,9 @@ def main():
 
             if order_type == "SELL":
 
-                m += stock_price*num_shares
-
                 owned[name_idx] -= num_shares
+                
+                m += stock_price*num_shares
 
             if order_type == "BUY":
 
@@ -100,5 +108,4 @@ def main():
     print(market_val)
 
 if __name__ == "__main__":
-    # main()
-    print_transactions()
+    main()
