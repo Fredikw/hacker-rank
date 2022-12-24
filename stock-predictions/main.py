@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.svm import SVR
 
 
 def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.ndarray, prices: np.ndarray) -> str:
@@ -32,7 +33,6 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
         # Add stock prices for today
         data.loc[len(data)] = [prices[i][-1] for i in range(len(names))]
 
-
     else:
         # Create an empty dataframe
         data = pd.DataFrame()
@@ -41,7 +41,12 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
         for i in range(k):
             data[names[i]] = prices[i]
 
-    #TODO calculate rate of return, add to dataframe, use SVR
+    target = data.shift(periods=-1) - data
+
+    # svr_rbf = SVR(kernel='rbf', C=1e3, gamma=0.1)
+
+    # svr_rbf.fit(data, target)
+
 
     data.to_csv(file_path, index=False)
 
@@ -54,8 +59,8 @@ def main():
     # Read data from a file
     data = pd.read_csv("data_train_raw.txt", sep=" ", header=None, index_col=0).transpose()
     # # # Show data
-    # data.plot()
-    # plt.show()
+    data.plot()
+    plt.show()
 
     # Set variables
     m = 120  # money left
