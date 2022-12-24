@@ -1,5 +1,7 @@
 import csv
 import os
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.ensemble import RandomForestRegressor
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,12 +43,13 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
         for i in range(k):
             data[names[i]] = prices[i]
 
-    target = data.shift(periods=-1) - data
+
+
+    #TODO time series prediction model
 
     # svr_rbf = SVR(kernel='rbf', C=1e3, gamma=0.1)
 
     # svr_rbf.fit(data, target)
-
 
     data.to_csv(file_path, index=False)
 
@@ -59,9 +62,23 @@ def main():
     # Read data from a file
     data = pd.read_csv("data_train_raw.txt", sep=" ", header=None, index_col=0).transpose()
     # # # Show data
-    data.plot()
-    plt.show()
+    # data.plot()
+    # plt.show()
 
+    daily_return = ((data.shift(periods=-1) - data)/data)
+    daily_return = daily_return.dropna().values
+
+    days = np.arange(1, len(daily_return)+1).reshape(-1, 1)
+
+    model = MultiOutputRegressor(RandomForestRegressor())
+    model.fit(days, daily_return)
+
+    pred = model.predict([[len(days)+1]])
+
+    print(pred)
+
+    exit()
+    
     # Set variables
     m = 120  # money left
     k = 10  # number of stocks
