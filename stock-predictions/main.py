@@ -6,7 +6,6 @@ from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.svm import SVR
 
 
 def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.ndarray, prices: np.ndarray) -> str:
@@ -24,34 +23,65 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
     - A string representing the transactions for the day.
     """
     
-    # Set the file path and name
     file_path = "data.csv"
 
     # Check if the file exists
     if os.path.exists(file_path):
-        # Open the file and read the data into a dataframe
         data = pd.read_csv(file_path)
 
         # Add stock prices for today
         data.loc[len(data)] = [prices[i][-1] for i in range(len(names))]
 
     else:
-        # Create an empty dataframe
         data = pd.DataFrame()
     
         # Add stock prices for the last five days
         for i in range(k):
             data[names[i]] = prices[i]
 
+    # Sell everything
+    orders = ""
+    number_of_transactions = 0
 
+    for i, shares in enumerate(owned):
+        
+        if shares == 0:
+            continue
+        
+        orders += f"\n{names[i]} SELL {shares}"
+        number_of_transactions += 1
+        m += shares*prices[i][-1]
 
-    #TODO time series prediction model
+    # Find target values for prediction model
+    daily_return = ((data.shift(periods=-1) - data)/data)
+    daily_return = daily_return.dropna().values
 
-    # svr_rbf = SVR(kernel='rbf', C=1e3, gamma=0.1)
+    days = np.arange(1, len(daily_return)+1).reshape(-1, 1)
 
-    # svr_rbf.fit(data, target)
+    # Prediction model
+    model = MultiOutputRegressor(RandomForestRegressor())
+    model.fit(days, daily_return)
 
-    data.to_csv(file_path, index=False)
+    pred = model.predict([[len(days)+1]])
+
+    # Find stock with positiv return
+    idx = np.argsort(-pred)
+    sorted_returns = pred[0][idx]
+    sorted_returns_stock_names = data.columns.to_numpy()[idx]
+
+    num_positiv_return = np.count_nonzero(sorted_returns > 0)
+
+    for i in range(num_positiv_return):
+        price = prices[names.index[sorted_returns_stock_names[i]]]
+        if m > price:
+            number_of_shares = m//price
+            orders += f"\n{names[i]} BUY {shares}"
+            m -= number_of_shares*price
+            number_of_transactions += 1
+    
+    lines = orders.splitlines()
+    lines[0] = str(number_of_transactions)
+    orders = '\n'.join(lines)
 
     return ""
 
@@ -59,30 +89,16 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
 
 def main():
     """Read data from a file, process it, and print the transactions."""
-    # Read data from a file
+
     data = pd.read_csv("data_train_raw.txt", sep=" ", header=None, index_col=0).transpose()
     # # # Show data
     # data.plot()
     # plt.show()
-
-    daily_return = ((data.shift(periods=-1) - data)/data)
-    daily_return = daily_return.dropna().values
-
-    days = np.arange(1, len(daily_return)+1).reshape(-1, 1)
-
-    model = MultiOutputRegressor(RandomForestRegressor())
-    model.fit(days, daily_return)
-
-    pred = model.predict([[len(days)+1]])
-
-    print(pred)
-
-    exit()
     
     # Set variables
     m = 120  # money left
-    k = 10  # number of stocks
-    n = 5  # number of days for which stock prices are received
+    k = 10   # number of stocks
+    n = 5    # number of days for which stock prices are received
 
     d_tot = data.count()
     names = data.columns.to_numpy()
@@ -123,7 +139,6 @@ def main():
                     m -= stock_price*num_shares
                   
                     owned[name_idx] += num_shares
-
 
     # Market value
     market_val = np.sum(owned*row.to_numpy())
