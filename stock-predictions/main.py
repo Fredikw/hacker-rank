@@ -1,11 +1,11 @@
 import csv
 import os
-from sklearn.multioutput import MultiOutputRegressor
-from sklearn.ensemble import RandomForestRegressor
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.multioutput import MultiOutputRegressor
 
 
 def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.ndarray, prices: np.ndarray) -> str:
@@ -24,8 +24,6 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
     """
     
     file_path = "data.csv"
-
-    print("****in model *****")
 
     # Check if the file exists
     if os.path.exists(file_path):
@@ -57,8 +55,7 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
         m += shares*prices[i][-1]
 
     # Find target values for prediction model
-    daily_return = ((data.shift(periods=-1) - data)/data)
-    daily_return = daily_return.dropna().values
+    daily_return = ((data.shift(periods=-1) - data)/data).dropna().values
 
     days = np.arange(1, len(daily_return)+1).reshape(-1, 1)
 
@@ -69,41 +66,33 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
     pred = model.predict([[len(days)+1]])
 
     # Find stock with positiv return
-    idx = np.argsort(-pred)
-    sorted_returns = pred[0][idx][0]
-    sorted_returns_stock_names = data.columns.to_numpy()[idx][0]
-    num_positiv_return = np.count_nonzero(sorted_returns > 0)
-
-    print(sorted_returns_stock_names)
+    sorted_returns = pred[0][np.argsort(-pred)][0]
+    sorted_returns_stock_names = data.columns.to_numpy()[np.argsort(-pred)][0]
 
     # Buy stocks with expected positiv return
-    for i in range(num_positiv_return):
+    for i in range(np.count_nonzero(sorted_returns > 0)):
         price = prices[np.where(names == sorted_returns_stock_names[i])[0][0]][-1]
+        
         if m >= price:
             shares = m//price
             orders += f"\n{sorted_returns_stock_names[i]} BUY {shares}"
-            print("share: ", sorted_returns_stock_names[i])
-            print("price of share", price)
-            print("Price of transaction", shares*price)
-            m -= shares*price
             number_of_transactions += 1
+            m -= shares*price
     
     if number_of_transactions > 0:
         lines = orders.splitlines()
         lines[0] = str(number_of_transactions)
         orders = '\n'.join(lines)
-        print(orders)
 
     return orders
 
-def main():
-    
-    os.remove("data.csv")
-    ITERATION = 0
+def main():    
     """Read data from a file, process it, and print the transactions."""
 
+    os.remove("data.csv")
+
     data = pd.read_csv("data_train_raw.txt", sep=" ", header=None, index_col=0).transpose()
-    # # # Show data
+    # # Show data
     # data.plot()
     # plt.show()
     
@@ -112,23 +101,16 @@ def main():
     k = 10   # number of stocks
     n = 5    # number of days for which stock prices are received
 
-    d_tot = data.count()
     names = data.columns.to_numpy()
     owned = np.zeros(k)
 
     # Iterate over the rows of the dataframe
     for i, row in data.iterrows():
-        print("--------------------------------------------------------")
-        print("iteration", ITERATION)
-        ITERATION += 1
         if i < 5:
             continue
 
-        d = d_tot - i
+        d = data.count() - i
         prices = data[i-n:i].to_numpy().transpose()
-
-        print(m)
-        print(owned)
 
         orders = print_transactions(m, k, d, names, owned, prices)
 
@@ -136,17 +118,11 @@ def main():
         for i, order in enumerate(orders.splitlines()):
             if i == 0: continue
 
-            print("executing line in order:")
-
             stock, order_type, num_shares = order.split()
-            print("stock ", stock)
-            print("order type, ", order_type)
-            print("number of shares", num_shares)
 
             num_shares = int(float(num_shares))
             
             stock_price = row.loc[stock]
-            print(stock_price)
 
             name_idx = np.argwhere(names == stock)[0][0]
 
@@ -155,7 +131,6 @@ def main():
                 owned[name_idx] -= num_shares
                 
                 m += stock_price*num_shares
-                print("SOLD, money now", m)
 
             if order_type == "BUY":
 
@@ -164,7 +139,6 @@ def main():
                     m -= stock_price*num_shares
                   
                     owned[name_idx] += num_shares
-                    print("bought, money now", m)
 
     # Market value
     market_val = np.sum(owned*row.to_numpy()) + m
