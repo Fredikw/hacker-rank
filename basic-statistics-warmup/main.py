@@ -5,10 +5,7 @@ from scipy.stats import norm
 if __name__ == "__main__":
 
     # Read input from STDIN
-    # input = input("Sample Input: ")
-    input = """5
-    12 43 11 23 33
-    """
+    input = input("Sample Input: ")
 
     values = np.array(input.splitlines()[1].split(), dtype=int)
     
