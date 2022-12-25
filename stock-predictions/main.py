@@ -75,6 +75,7 @@ def print_transactions(m: float, k: int, d: int, names: np.ndarray, owned: np.nd
         
         if m >= price:
             shares = m//price
+            
             orders += f"\n{sorted_returns_stock_names[i]} BUY {shares}"
             number_of_transactions += 1
             m -= shares*price
