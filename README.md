@@ -6,4 +6,5 @@ Solving HackerRank problems
 
 `Mode`
 `Confidence Interval`
-`Pearson correlation coefficient`
+`Pearson's correlation coefficient`
+`Bivariate distribution`
