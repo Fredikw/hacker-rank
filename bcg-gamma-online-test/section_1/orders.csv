@@ -1,6 +1,6 @@
 ﻿id ,transaction_date,customer_id,product,quantity,price
 1,2017-01-22,1,iphone,1,100
-2,2018-01-22,3,ihpone,11,100
+2,2018-01-22,3,mac,11,100
 3,2017-08-12,1,iphone,5,100
 4,2017-06-01,3,ipad,12,1000
 5,2018-03-23,1,iphone,1,100
